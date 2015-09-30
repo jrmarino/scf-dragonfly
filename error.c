@@ -29,15 +29,11 @@
 
 #include <assert.h>
 #include <dlfcn.h>
-#include <libintl.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/machelf.h>
-#include <thread.h>
-
 #include <ucontext.h>
 
 extern int ndebug;
@@ -82,6 +78,8 @@ static struct scf_error_info {
 static scf_error_t	_scf_fallback_error = SCF_ERROR_NONE;
 
 #if defined(PTHREAD_ONCE_KEY_NP)
+
+/* Neither DragonFly nor FreeBSD has thr_keycreate_once */
 
 static pthread_key_t	scf_error_key = PTHREAD_ONCE_KEY_NP;
 
@@ -157,9 +155,9 @@ scf_strerror(scf_error_t code)
 
 	for (; cur < end; cur++)
 		if (code == cur->ei_code)
-			return (dgettext(TEXT_DOMAIN, cur->ei_desc));
+			return (cur->ei_desc);
 
-	return (dgettext(TEXT_DOMAIN, "unknown error"));
+	return ("unknown error");
 }
 
 const char *
@@ -167,39 +165,31 @@ scf_get_msg(scf_msg_t msg)
 {
 	switch (msg) {
 	case SCF_MSG_ARGTOOLONG:
-		return (dgettext(TEXT_DOMAIN,
-		    "Argument '%s' is too long, ignoring\n"));
+		return ("Argument '%s' is too long, ignoring\n");
 
 	case SCF_MSG_PATTERN_NOINSTANCE:
-		return (dgettext(TEXT_DOMAIN,
-		    "Pattern '%s' doesn't match any instances\n"));
+		return ("Pattern '%s' doesn't match any instances\n");
 
 	case SCF_MSG_PATTERN_NOINSTSVC:
-		return (dgettext(TEXT_DOMAIN,
-		    "Pattern '%s' doesn't match any instances or services\n"));
+		return ("Pattern '%s' doesn't match any instances or services\n");
 
 	case SCF_MSG_PATTERN_NOSERVICE:
-		return (dgettext(TEXT_DOMAIN,
-		    "Pattern '%s' doesn't match any services\n"));
+		return ("Pattern '%s' doesn't match any services\n");
 
 	case SCF_MSG_PATTERN_NOENTITY:
-		return (dgettext(TEXT_DOMAIN,
-		    "Pattern '%s' doesn't match any entities\n"));
+		return ("Pattern '%s' doesn't match any entities\n");
 
 	case SCF_MSG_PATTERN_MULTIMATCH:
-		return (dgettext(TEXT_DOMAIN,
-		    "Pattern '%s' matches multiple instances:\n"));
+		return ("Pattern '%s' matches multiple instances:\n");
 
 	case SCF_MSG_PATTERN_POSSIBLE:
-		return (dgettext(TEXT_DOMAIN, "    %s\n"));
+		return ("    %s\n");
 
 	case SCF_MSG_PATTERN_LEGACY:
-		return (dgettext(TEXT_DOMAIN,
-		    "Operation not supported for legacy service '%s'\n"));
+		return ("Operation not supported for legacy service '%s'\n");
 
 	case SCF_MSG_PATTERN_MULTIPARTIAL:
-		return (dgettext(TEXT_DOMAIN,
-		    "Partial FMRI matches multiple instances\n"));
+		return ("Partial FMRI matches multiple instances\n");
 
 	default:
 		abort();
