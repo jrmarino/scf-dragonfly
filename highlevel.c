@@ -31,14 +31,12 @@
 #include "libscf_impl.h"
 
 #include <assert.h>
-#include <libuutil.h>
 #include <string.h>
 #include <stdlib.h>
-#include <sys/systeminfo.h>
-#include <sys/uadmin.h>
 #include <sys/utsname.h>
+#include <libscf_dragonfly.h>
 
-#ifdef	__x86
+#ifdef	__SOLARIS__
 #include <smbios.h>
 
 /*
@@ -150,7 +148,7 @@ scferror:
 
 	return (rc);
 }
-#endif	/* __x86 */
+#endif	/* __SOLARIS__ */
 
 /*
  * Get config properties from svc:/system/boot-config:default.
@@ -183,14 +181,14 @@ scf_get_boot_config(uint8_t *boot_config)
 		if (scf_read_propvec(FMRI_BOOT_CONFIG, BOOT_CONFIG_PG_PARAMS,
 		    B_TRUE, ua_boot_config, &prop) != SCF_FAILED) {
 
-#ifdef	__x86
+#ifdef	__SOLARIS__
 			/*
 			 * Unset both flags if the platform has been
 			 * blacklisted.
 			 */
 			if (scf_is_fb_blacklisted())
 				return;
-#endif	/* __x86 */
+#endif	/* __SOLARIS__ */
 			*boot_config = (uint8_t)ret;
 			return;
 		}
@@ -221,7 +219,7 @@ scf_getset_boot_config_ovr(int set, uint8_t *boot_config_ovr)
 
 	assert(boot_config_ovr);
 
-#ifndef	__x86
+#ifndef	__SOLARIS__
 	return (rc);
 #else
 	{
@@ -284,7 +282,7 @@ scf_getset_boot_config_ovr(int set, uint8_t *boot_config_ovr)
 		return (rc);
 
 	}
-#endif	/* __x86 */
+#endif	/* __SOLARIS__ */
 }
 
 /*
@@ -331,6 +329,8 @@ int
 scf_is_fastboot_default(void)
 {
 	uint8_t	boot_config = 0, boot_config_ovr;
+
+#ifdef  __SOLARIS__
 	char procbuf[SYS_NMLN];
 
 	/*
@@ -339,6 +339,7 @@ scf_is_fastboot_default(void)
 	if (sysinfo(SI_PLATFORM, procbuf, sizeof (procbuf)) == -1 ||
 	    strcmp(procbuf, "i86xpv") == 0)
 		return (0);
+#endif
 
 	/*
 	 * Get property values from "config" property group
