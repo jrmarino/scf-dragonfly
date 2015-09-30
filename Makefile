@@ -10,7 +10,7 @@ SRCS=		error.c \
 		midlevel.c \
 		notify_params.c \
 		scf_tmpl.c \
-		scf_type
+		scf_type.c
 
 CFLAGS+=	-I/usr/local/include \
 		-I${.CURDIR}/include

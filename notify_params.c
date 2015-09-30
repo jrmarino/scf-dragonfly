@@ -26,7 +26,7 @@
 #include "libscf_impl.h"
 
 #include <assert.h>
-#include <strings.h>
+#include <string.h>
 
 /*
  * Errors returned by smf_notify_{del|get|set}_params()
