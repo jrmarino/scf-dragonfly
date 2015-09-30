@@ -364,13 +364,12 @@
  *	When it is set to 'perm', the switch is reversed.
  */
 
-#include <door.h>
 #include <stddef.h>
-#include <sys/sysmacros.h>
+#include <sys/param.h>
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
+
+#define NANOSEC	1000000000LL
 
 /*
  * svc.configd initial protocol details
@@ -862,8 +861,6 @@ struct rep_protocol_value_response {
 	char			rpr_value[2 * REP_PROTOCOL_VALUE_LEN + 1];
 };
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* _REPCACHE_PROTOCOL_H */

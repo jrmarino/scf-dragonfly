@@ -26,11 +26,9 @@
 #ifndef	_SCF_TYPE_H
 #define	_SCF_TYPE_H
 
-#include <repcache_protocol.h>
+#include "repcache_protocol.h"
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 int scf_validate_encoded_value(rep_protocol_value_type_t, const char *);
 
@@ -39,8 +37,6 @@ rep_protocol_value_type_t scf_proto_underlying_type(rep_protocol_value_type_t);
 int scf_is_compatible_protocol_type(rep_protocol_value_type_t,
     rep_protocol_value_type_t);
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* _SCF_TYPE_H */

@@ -24,7 +24,7 @@
  */
 
 #include <assert.h>
-#include <repcache_protocol.h>
+#include "repcache_protocol.h"
 #include "scf_type.h"
 #include <errno.h>
 #include <libgen.h>
@@ -171,22 +171,10 @@ valid_opaque(const char *str_arg)
 static int
 valid_uri(const char *str)
 {
-	/*
-	 * URI Regular Expression. Compiled with regcmp(1).
-	 *
-	 * ^(([^:/?#]+:){0,1})$0(//([^/?#]*)$1){0,1}([^?#]*)$2
-	 * (?([^#]*)$3){0,1}(#(.*)$4){0,1}
-	 */
-	char exp[] = {
-		040, 074, 00, 060, 012, 0126, 05, 072, 057, 077, 043, 024,
-		072, 057, 00, 00, 01, 014, 00, 00, 060, 020, 024, 057,
-		024, 057, 074, 01, 0125, 04, 057, 077, 043, 014, 01, 01,
-		057, 01, 00, 01, 074, 02, 0125, 03, 077, 043, 014, 02,
-		02, 060, 014, 024, 077, 074, 03, 0125, 02, 043, 014, 03,
-		03, 057, 02, 00, 01, 060, 012, 024, 043, 074, 04, 021,
-		014, 04, 04, 057, 03, 00, 01, 064, 00,
-		0};
-	char uri[URI_COMPONENT_COUNT][REP_PROTOCOL_VALUE_LEN];
+	int ret;
+	const char *re_str;
+	regex_t re_uri;
+	regmatch_t match[10];
 
 	/*
 	 * If the string is too long, then the URI cannot be valid. Also,
@@ -195,14 +183,35 @@ valid_uri(const char *str)
 	if (strlen(str) >= REP_PROTOCOL_VALUE_LEN)
 		return (0);
 
-	if (regex(exp, str, uri[URI_SCHEME], uri[URI_AUTHORITY], uri[URI_PATH],
-	    uri[URI_QUERY], uri[URI_FRAGMENT]) == NULL) {
+	/*
+	 * From RFC 2396
+	 *    The following line is the regular expression for breaking-down a URI
+	 *   reference into its components.
+	 *
+	 *      ^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?
+	 *       12            3  4          5       6  7        8 9
+	 *
+	 * We can determine the value of the four components and fragment as
+	 *      scheme    = $2
+	 *      authority = $4
+	 *      path      = $5
+	 *      query     = $7
+	 *      fragment  = $9
+	 */
+	re_str = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$";
+	if ((ret = regcomp(&re_uri, re_str, REG_EXTENDED)) != 0) {
 		return (0);
 	}
+
+	if (ret = regexec(&re_uri, str, re_uri.re_nsub + 1, match, 0) != 0) {
+		return (0);
+	}
+
 	/*
-	 * To be a valid URI, the length of the URI_PATH must not be zero
+	 * To be a valid URI, the length of the path must not be zero
+	 * $5 is the index where path is stored
 	 */
-	if (strlen(uri[URI_PATH]) == 0) {
+	if ((match[5].rm_eo - match[5].rm_so) > 0) {
 		return (0);
 	}
 	return (1);
