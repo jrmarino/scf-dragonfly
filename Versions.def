@@ -1,0 +1,8 @@
+SUNW_1.1 {
+};
+
+SUNW_1.2 {
+} SUNW_1.1;
+
+SUNWprivate_1.1 {
+} SUNW_1.2;

@@ -1,3 +1,4 @@
+/*
 #
 # CDDL HEADER START
 #
@@ -35,11 +36,9 @@
 #
 # MAPFILE HEADER END
 #
+*/
 
-$mapfile_version 2
-
-SYMBOL_VERSION SUNW_1.2 {
-    global:
+SUNW_1.2 {
         scf_count_ranges_destroy;
 	scf_int_ranges_destroy;
 	scf_string_to_type;
@@ -97,10 +96,9 @@ SYMBOL_VERSION SUNW_1.2 {
 	smf_notify_set_params;
 	smf_state_from_string;
 	smf_state_to_string;
-} SUNW_1.1;
+};
 
-SYMBOL_VERSION SUNW_1.1 {
-    global:
+SUNW_1.1 {
 	scf_entry_add_value;
 	scf_entry_create;
 	scf_entry_destroy;
@@ -277,8 +275,7 @@ SYMBOL_VERSION SUNW_1.1 {
 	smf_restore_instance;
 };
 
-SYMBOL_VERSION SUNWprivate_1.1 {
-    global:
+SUNWprivate_1.1 {
 	gen_filenms_from_fmri;
 	ismember;
 	scf_canonify_fmri;
@@ -331,6 +328,4 @@ SYMBOL_VERSION SUNWprivate_1.1 {
 	_check_services;
 	_scf_handle_create_and_bind;
 	_smf_refresh_all_instances;
-    local:
-	*;
 };
