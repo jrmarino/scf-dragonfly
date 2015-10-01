@@ -35,7 +35,6 @@
 #include "scf_type.h"
 
 #include <assert.h>
-#include <alloca.h>
 #include <door.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -43,16 +42,22 @@
 #include <libuutil.h>
 #include <poll.h>
 #include <pthread.h>
-#include <synch.h>
+//#include <synch.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <sys/sysmacros.h>
-#include <libzonecfg.h>
+//#include <sys/sysmacros.h>
+//#include <libzonecfg.h>
 #include <unistd.h>
 #include <dlfcn.h>
+
+/* I am not sure if there is an equivalent for mutex_owned() on DragonFly.
+ * For now, assume there is not and disable the assertions
+ */
+
+#define MUTEX_HELD(x)		1
 
 #define	ENV_SCF_DEBUG		"LIBSCF_DEBUG"
 #define	ENV_SCF_DOORPATH	"LIBSCF_DOORPATH"
@@ -923,6 +928,7 @@ scf_handle_decorate(scf_handle_t *handle, const char *name, scf_value_t *v)
 		if (len == 0 || len >= sizeof (zone))
 			return (scf_set_error(SCF_ERROR_INVALID_ARGUMENT));
 
+#ifdef __ZONES_SUPPORTED__
 		if (zone_get_rootpath(zone, root, sizeof (root)) != Z_OK) {
 			if (strcmp(zone, GLOBAL_ZONENAME) == 0) {
 				root[0] = '\0';
@@ -930,6 +936,7 @@ scf_handle_decorate(scf_handle_t *handle, const char *name, scf_value_t *v)
 				return (scf_set_error(SCF_ERROR_NOT_FOUND));
 			}
 		}
+#endif
 
 		if (snprintf(door, sizeof (door), "%s/%s", root,
 		    default_door_path) >= sizeof (door))
@@ -1860,7 +1867,7 @@ datael_get_child_locked(const scf_datael_t *dp, const char *name,
  */
 static int
 datael_get_child(const scf_datael_t *dp, const char *name, uint32_t type,
-    scf_datael_t *out, boolean_t composed)
+    scf_datael_t *out, bool composed)
 {
 	scf_handle_t *h = dp->rd_handle;
 	uint32_t held = 0;
@@ -2336,7 +2343,7 @@ scf_handle_get_scope(scf_handle_t *h, const char *name, scf_scope_t *out)
 
 static int
 datael_setup_iter(scf_iter_t *iter, const scf_datael_t *dp, uint32_t res_type,
-    boolean_t composed)
+    bool composed)
 {
 	scf_handle_t *h = dp->rd_handle;
 
@@ -2379,7 +2386,7 @@ datael_setup_iter(scf_iter_t *iter, const scf_datael_t *dp, uint32_t res_type,
 
 static int
 datael_setup_iter_pgtyped(scf_iter_t *iter, const scf_datael_t *dp,
-    const char *pgtype, boolean_t composed)
+    const char *pgtype, bool composed)
 {
 	scf_handle_t *h = dp->rd_handle;
 
@@ -6079,7 +6086,7 @@ typedef struct scf_match {
 static scf_matchkey_t *
 scf_get_key(scf_matchkey_t **htable, const char *fmri, const char *legacy)
 {
-	uint_t h = 0, g;
+	uint32_t h = 0, g;
 	const char *p, *k;
 	scf_matchkey_t *key;
 
@@ -6287,8 +6294,8 @@ scf_walk_fmri(scf_handle_t *h, int argc, char **argv, int flags,
 	ssize_t max_name_length;
 	char *pgname = NULL;
 	scf_walkinfo_t info;
-	boolean_t partial_fmri = B_FALSE;
-	boolean_t wildcard_fmri = B_FALSE;
+	bool partial_fmri = false;
+	bool wildcard_fmri = false;
 
 #ifndef NDEBUG
 	if (flags & SCF_WALK_EXPLICIT)
@@ -6496,7 +6503,7 @@ scf_walk_fmri(scf_handle_t *h, int argc, char **argv, int flags,
 			goto error;
 		}
 		pattern[i].sp_type = PATTERN_EXACT;
-		partial_fmri = B_TRUE;	/* we just iterated all instances */
+		partial_fmri = true;	/* we just iterated all instances */
 
 		continue;
 
@@ -6521,7 +6528,7 @@ badfmri:
 			 * Prepend svc:/ to patterns which don't begin with * or
 			 * svc: or lrc:.
 			 */
-			wildcard_fmri = B_TRUE;
+			wildcard_fmri = true;
 			pattern[i].sp_type = PATTERN_GLOB;
 			if (argv[i][0] == '*' ||
 			    (strlen(argv[i]) >= 4 && argv[i][3] == ':'))
@@ -6534,7 +6541,7 @@ badfmri:
 					    argv[i]);
 			}
 		} else {
-			partial_fmri = B_TRUE;
+			partial_fmri = true;
 			pattern[i].sp_type = PATTERN_PARTIAL;
 			pattern[i].sp_arg = strdup(argv[i]);
 		}
@@ -7034,13 +7041,13 @@ int
 scf_encode32(const char *input, size_t inlen, char *output, size_t outmax,
     size_t *outlen, char pad)
 {
-	uint_t group_size = 5;
-	uint_t i;
+	uint32_t group_size = 5;
+	uint32_t i;
 	const unsigned char *in = (const unsigned char *)input;
 	size_t olen;
-	uchar_t *out = (uchar_t *)output;
-	uint_t oval;
-	uint_t pad_count;
+	u_char *out = (u_char *)output;
+	uint32_t oval;
+	uint32_t pad_count;
 
 	/* Verify that there is enough room for the output. */
 	olen = ((inlen + (group_size - 1)) / group_size) * 8;
@@ -7196,12 +7203,12 @@ scf_decode32(const char *in, size_t inlen, char *outbuf, size_t outmax,
 {
 	char *bufend = outbuf + outmax;
 	char c;
-	uint_t count;
+	uint32_t count;
 	uint32_t g[DECODE32_GS];
 	size_t i;
-	uint_t j;
+	uint32_t j;
 	char *out = outbuf;
-	boolean_t pad_seen = B_FALSE;
+	bool pad_seen = false;
 
 	/* If caller did not provide pad character, use the default. */
 	if (pad == 0) {
@@ -7231,7 +7238,7 @@ scf_decode32(const char *in, size_t inlen, char *outbuf, size_t outmax,
 			 */
 			if ((c == '\r') || (c == '\n'))
 				continue;
-			if ((pad_seen == B_TRUE) && (c != pad)) {
+			if ((pad_seen == true) && (c != pad)) {
 				/* Group not completed by pads */
 				return (-1);
 			}
@@ -7240,7 +7247,7 @@ scf_decode32(const char *in, size_t inlen, char *outbuf, size_t outmax,
 				return (-1);
 			}
 			if (c == pad) {
-				pad_seen = B_TRUE;
+				pad_seen = true;
 				continue;
 			}
 			if ((g[j++] = index32[c]) == 0xff) {
@@ -7391,7 +7398,7 @@ _scf_repository_switch(scf_handle_t *h, int scf_sw)
 }
 
 int
-_scf_pg_is_read_protected(const scf_propertygroup_t *pg, boolean_t *out)
+_scf_pg_is_read_protected(const scf_propertygroup_t *pg, bool *out)
 {
 	char buf[REP_PROTOCOL_NAME_LEN];
 	ssize_t res;

@@ -28,7 +28,6 @@
 
 #include "libscf_impl.h"
 
-#include <door.h>
 #include <libuutil.h>
 #include <limits.h>
 #include <pthread.h>
@@ -36,9 +35,9 @@
 
 #include "repcache_protocol.h"
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
+
+typedef	unsigned long long door_id_t;
 
 typedef struct scf_datael {
 	scf_handle_t	*rd_handle;
@@ -197,8 +196,6 @@ struct scf_iter {
 	uu_list_node_t	iter_node;
 };
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* _LOWLEVEL_IMPL_H */
