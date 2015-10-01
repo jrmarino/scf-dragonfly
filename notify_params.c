@@ -105,7 +105,7 @@ static struct st_pgname {
  *
  * returns 1, otherwise return 0
  */
-static boolean_t
+static bool
 is_svc_stn(const char *class)
 {
 	int n = strlen(SCF_SVC_TRANSITION_CLASS);
@@ -409,7 +409,7 @@ static int
 get_nvpair_vals(scf_handle_t *h, scf_transaction_entry_t *te, nvpair_t *p)
 {
 	scf_value_t *val = scf_value_create(h);
-	uint_t n = 1;
+	uint32_t n = 1;
 	int i;
 
 	if (val == NULL)
@@ -420,14 +420,14 @@ get_nvpair_vals(scf_handle_t *h, scf_transaction_entry_t *te, nvpair_t *p)
 		return (add_boolean_entry(h, te, 1));
 	case DATA_TYPE_BOOLEAN_VALUE:
 		{
-			boolean_t v;
+			bool v;
 
 			(void) nvpair_value_boolean_value(p, &v);
 			return (add_boolean_entry(h, te, (uint8_t)v));
 		}
 	case DATA_TYPE_BOOLEAN_ARRAY:
 		{
-			boolean_t *v;
+			bool *v;
 
 			(void) nvpair_value_boolean_array(p, &v, &n);
 			for (i = 0; i < n; ++i) {
@@ -439,7 +439,7 @@ get_nvpair_vals(scf_handle_t *h, scf_transaction_entry_t *te, nvpair_t *p)
 		}
 	case DATA_TYPE_BYTE:
 		{
-			uchar_t v;
+			u_char v;
 
 			(void) nvpair_value_byte(p, &v);
 			return (add_count_entry(h, te, v));
@@ -474,7 +474,7 @@ get_nvpair_vals(scf_handle_t *h, scf_transaction_entry_t *te, nvpair_t *p)
 		}
 	case DATA_TYPE_BYTE_ARRAY:
 		{
-			uchar_t *v;
+			u_char *v;
 
 			(void) nvpair_value_byte_array(p, &v, &n);
 			for (i = 0; i < n; ++i) {
@@ -1074,17 +1074,17 @@ add_prop_to_nvlist(scf_property_t *p, const char *pname, nvlist_t *nvl,
 	switch (vals.value_type) {
 	case SCF_TYPE_BOOLEAN:
 		{
-			boolean_t *v;
+			bool *v;
 			int i;
 			int n = vals.value_count;
 
-			v = calloc(n, sizeof (boolean_t));
+			v = calloc(n, sizeof (bool));
 			if (v == NULL) {
 				(void) scf_set_error(SCF_ERROR_NO_MEMORY);
 				goto cleanup;
 			}
 			for (i = 0; i < n; ++i)
-				v[i] = (boolean_t)vals.values.v_boolean[i];
+				v[i] = (bool)vals.values.v_boolean[i];
 
 			if (n == 1 && !array)
 				err = nvlist_add_boolean_value(nvl, pname, *v);
@@ -1194,7 +1194,7 @@ get_mech_name(const char *name, char **mech, char **val)
  * Return the number of transitions in a transition set.
  * If the transition set is invalid, it returns zero.
  */
-static uint_t
+static uint32_t
 num_of_transitions(int32_t t)
 {
 	int i;
@@ -1274,7 +1274,7 @@ smf_notify_set_params(const char *class, nvlist_t *attr)
 	char		*fmri = (char *)SCF_NOTIFY_PARAMS_INST;
 	char		*pgname = NULL;
 	int		r = SCF_FAILED;
-	boolean_t	is_stn;
+	bool		is_stn;
 	int		 j;
 
 	assert(class != NULL);
@@ -1584,7 +1584,7 @@ _scf_get_svc_notify_params(const char *fmri, nvlist_t *nvl, int32_t tset,
 	scf_propertygroup_t	*pg = scf_pg_create(h);
 	int r = SCF_FAILED;
 	nvlist_t **params = NULL;
-	uint_t c, nvl_num = 0;
+	uint32_t c, nvl_num = 0;
 	int not_found = 1;
 	int j;
 	const char *pgname;

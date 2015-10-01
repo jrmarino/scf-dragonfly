@@ -30,9 +30,7 @@
 #include <libscf.h>
 #include <unistd.h>
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /*
  * NOTE
@@ -227,7 +225,7 @@ scf_simple_handle_t *scf_general_pg_setup(const char *, const char *);
 scf_transaction_t *scf_transaction_setup(scf_simple_handle_t *);
 int scf_transaction_restart(scf_simple_handle_t *, scf_transaction_t *);
 int scf_read_count_property(scf_simple_handle_t *, char *, uint64_t *);
-int scf_set_count_property(scf_transaction_t *, char *, uint64_t, boolean_t);
+int scf_set_count_property(scf_transaction_t *, char *, uint64_t, bool);
 
 /*
  * Walks all the instances matching a given fmri list.  Each fmri in the array
@@ -342,7 +340,7 @@ int _scf_repository_switch(scf_handle_t *, int);
  *	_NOT_BOUND, _CONNECTION_BROKEN, _INVALID_ARGUMENT, _INTERNAL,
  *	_NO_RESOURCES, _CONSTRAINT_VIOLATED, _DELETED.
  */
-int _scf_pg_is_read_protected(const scf_propertygroup_t *, boolean_t *);
+int _scf_pg_is_read_protected(const scf_propertygroup_t *, bool *);
 
 /*
  * Sets annotation data for SMF audit logging.  Once this function has been
@@ -390,7 +388,7 @@ int gen_filenms_from_fmri(const char *, const char *, char *, char *);
  *
  * The meaning of pv_ptr and pv_aux depends on the type of property.  For:
  *
- *   boolean - if pv_aux is 0, pv_ptr is a pointer to a boolean_t
+ *   boolean - if pv_aux is 0, pv_ptr is a pointer to a bool
  *             if pv_aux is non-0, pv_ptr is a pointer to a uint64_t,
  *             where pv_aux indicates the bit holding the truth value.
  *   count   - pv_ptr is a pointer to a uint64_t; pv_aux is unused
@@ -415,7 +413,7 @@ typedef struct {
 } scf_propvec_t;
 
 void scf_clean_propvec(scf_propvec_t *);
-int scf_read_propvec(const char *, const char *, boolean_t, scf_propvec_t *,
+int scf_read_propvec(const char *, const char *, bool, scf_propvec_t *,
     scf_propvec_t **);
 int scf_write_propvec(const char *, const char *, scf_propvec_t *,
     scf_propvec_t **);
@@ -543,7 +541,7 @@ int scf_is_fastboot_default(void);
 /*
  * Set value of "config_ovr/fastreboot_default".
  */
-int scf_fastreboot_default_set_transient(boolean_t);
+int scf_fastreboot_default_set_transient(bool);
 
 /*
  * scf_is_compatible_type()
@@ -594,8 +592,6 @@ int _scf_notify_get_params(scf_propertygroup_t *, nvlist_t *);
 
 #define	SCF_NOTIFY_PARAMS_SOURCE_NAME	((const char *)"preference_source")
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* _LIBSCF_PRIV_H */

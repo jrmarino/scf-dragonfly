@@ -370,6 +370,8 @@
 __BEGIN_DECLS
 
 #define NANOSEC	1000000000LL
+#define MILLISEC 1000
+#define	P2ROUNDUP(x,align)	(-(-(x) & -(align)))
 
 /*
  * svc.configd initial protocol details

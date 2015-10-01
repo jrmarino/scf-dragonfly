@@ -103,7 +103,7 @@ static int
 valid_utf8(const char *str_arg)
 {
 	const char *str = str_arg;
-	uint_t c;
+	uint32_t c;
 	uint32_t v;
 	int i, n;
 
@@ -152,7 +152,7 @@ static int
 valid_opaque(const char *str_arg)
 {
 	const char *str = str_arg;
-	uint_t c;
+	uint32_t c;
 	ptrdiff_t len;
 
 	while ((c = *str++) != 0)
@@ -364,7 +364,7 @@ static int
 valid_encoded_value(rep_protocol_value_type_t t, const char *v)
 {
 	char *p;
-	ulong_t ns;
+	u_long ns;
 
 	switch (t) {
 	case REP_PROTOCOL_TYPE_BOOLEAN:

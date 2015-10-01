@@ -179,7 +179,7 @@ scf_get_boot_config(uint8_t *boot_config)
 			prop->pv_ptr = &ret;
 		prop = NULL;
 		if (scf_read_propvec(FMRI_BOOT_CONFIG, BOOT_CONFIG_PG_PARAMS,
-		    B_TRUE, ua_boot_config, &prop) != SCF_FAILED) {
+		    true, ua_boot_config, &prop) != SCF_FAILED) {
 
 #ifdef	__SOLARIS__
 			/*
@@ -258,7 +258,7 @@ scf_getset_boot_config_ovr(int set, uint8_t *boot_config_ovr)
 			    BOOT_CONFIG_PG_OVR, ua_boot_config_ovr, &prop);
 		else
 			rc = scf_read_propvec(FMRI_BOOT_CONFIG,
-			    BOOT_CONFIG_PG_OVR, B_FALSE, ua_boot_config_ovr,
+			    BOOT_CONFIG_PG_OVR, false, ua_boot_config_ovr,
 			    &prop);
 
 #if defined(FASTREBOOT_DEBUG)
@@ -291,21 +291,21 @@ scf_getset_boot_config_ovr(int set, uint8_t *boot_config_ovr)
 void
 scf_get_boot_config_ovr(uint8_t *boot_config_ovr)
 {
-	(void) scf_getset_boot_config_ovr(B_FALSE, boot_config_ovr);
+	(void) scf_getset_boot_config_ovr(false, boot_config_ovr);
 }
 
 /*
  * Set value of "config_ovr/fastreboot_default".
  */
 int
-scf_fastreboot_default_set_transient(boolean_t value)
+scf_fastreboot_default_set_transient(bool value)
 {
 	uint8_t	boot_config_ovr = 0;
 
-	if (value == B_TRUE)
+	if (value == true)
 		boot_config_ovr = UA_FASTREBOOT_DEFAULT | UA_FASTREBOOT_ONPANIC;
 
-	return (scf_getset_boot_config_ovr(B_TRUE, &boot_config_ovr));
+	return (scf_getset_boot_config_ovr(true, &boot_config_ovr));
 }
 
 /*

@@ -31,9 +31,7 @@
 #include <sys/types.h>
 #include <libnvpair.h>
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 typedef struct scf_version *scf_version_t;
 #define	SCF_VERSION	((scf_version_t)1UL)
@@ -784,7 +782,7 @@ int smf_degrade_instance(const char *, int);
 int smf_restore_instance(const char *);
 char *smf_get_state(const char *);
 
-int scf_simple_walk_instances(uint_t, void *,
+int scf_simple_walk_instances(uint32_t, void *,
     int (*inst_callback)(scf_handle_t *, scf_instance_t *, void *));
 
 scf_simple_prop_t *scf_simple_prop_get(scf_handle_t *, const char *,
@@ -841,8 +839,6 @@ int smf_notify_del_params(const char *, const char *, int32_t);
 #define	SMF_EXIT_ERR_NOSMF	 99
 #define	SMF_EXIT_ERR_PERM	100
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* _LIBSCF_H */

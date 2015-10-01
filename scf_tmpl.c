@@ -64,8 +64,8 @@
 #include "libscf_impl.h"
 #include <assert.h>
 #include <errno.h>
-#include <libintl.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <strings.h>
 #include <locale.h>
@@ -487,7 +487,7 @@ _scf_read_tmpl_prop_type_as_string(const scf_prop_tmpl_t *pt)
  */
 static int
 _read_single_boolean_from_pg(scf_propertygroup_t *pg, const char *prop_name,
-    uint8_t *bool)
+    uint8_t *boolzzz)
 {
 	scf_value_t *val;
 	int ret = 0;
@@ -495,7 +495,7 @@ _read_single_boolean_from_pg(scf_propertygroup_t *pg, const char *prop_name,
 	if (_read_single_value_from_pg(pg, prop_name, &val) == -1)
 		return (-1);
 
-	if (scf_value_get_boolean(val, bool) < 0) {
+	if (scf_value_get_boolean(val, boolzzz) < 0) {
 		assert(scf_error() != SCF_ERROR_NOT_SET);
 		ret = -1;
 	}
@@ -4446,7 +4446,7 @@ _get_fmri_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_PG_PATTERN_INCOMPLETE:
 	case SCF_TERR_PROP_PATTERN_INCOMPLETE:
 	case SCF_TERR_INCLUDE_VALUES:
-		return (dgettext(TEXT_DOMAIN, em_fmri));
+		return (em_fmri);
 	case SCF_TERR_PROP_TYPE_MISMATCH:
 	case SCF_TERR_VALUE_OUT_OF_RANGE:
 	case SCF_TERR_INVALID_VALUE:
@@ -4468,7 +4468,7 @@ _get_pg_name_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_CARDINALITY_VIOLATION:
 	case SCF_TERR_VALUE_CONSTRAINT_VIOLATED:
 	case SCF_TERR_RANGE_VIOLATION:
-		return (dgettext(TEXT_DOMAIN, em_pg_name));
+		return (em_pg_name);
 	case SCF_TERR_MISSING_PG:
 	case SCF_TERR_PG_REDEFINE:
 	case SCF_TERR_PROP_TYPE_MISMATCH:
@@ -4493,7 +4493,7 @@ _get_prop_name_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_CARDINALITY_VIOLATION:
 	case SCF_TERR_VALUE_CONSTRAINT_VIOLATED:
 	case SCF_TERR_RANGE_VIOLATION:
-		return (dgettext(TEXT_DOMAIN, em_prop_name));
+		return (em_prop_name);
 	case SCF_TERR_MISSING_PG:
 	case SCF_TERR_WRONG_PG_TYPE:
 	case SCF_TERR_MISSING_PROP:
@@ -4527,7 +4527,7 @@ _get_ev1_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_PROP_PATTERN_CONFLICT:
 	case SCF_TERR_GENERAL_REDEFINE:
 	case SCF_TERR_INCLUDE_VALUES:
-		return (dgettext(TEXT_DOMAIN, em_desc[err->te_type].em_ev1));
+		return (em_desc[err->te_type].em_ev1);
 	case SCF_TERR_VALUE_CONSTRAINT_VIOLATED:
 	case SCF_TERR_PROP_TYPE_MISMATCH:
 	case SCF_TERR_VALUE_OUT_OF_RANGE:
@@ -4550,7 +4550,7 @@ _get_ev2_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_PG_PATTERN_CONFLICT:
 	case SCF_TERR_PROP_PATTERN_CONFLICT:
 	case SCF_TERR_GENERAL_REDEFINE:
-		return (dgettext(TEXT_DOMAIN, em_desc[err->te_type].em_ev2));
+		return (em_desc[err->te_type].em_ev2);
 	case SCF_TERR_WRONG_PG_TYPE:
 	case SCF_TERR_MISSING_PROP:
 	case SCF_TERR_WRONG_PROP_TYPE:
@@ -4583,8 +4583,7 @@ _get_actual_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_PROP_PATTERN_CONFLICT:
 	case SCF_TERR_GENERAL_REDEFINE:
 	case SCF_TERR_INCLUDE_VALUES:
-		return (dgettext(TEXT_DOMAIN,
-		    em_desc[err->te_type].em_actual));
+		return (em_desc[err->te_type].em_actual);
 	case SCF_TERR_MISSING_PROP:
 	case SCF_TERR_PG_REDEFINE:
 	case SCF_TERR_PG_PATTERN_INCOMPLETE:
@@ -4615,7 +4614,7 @@ _get_tmpl_fmri_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_INCLUDE_VALUES:
 	case SCF_TERR_PG_PATTERN_INCOMPLETE:
 	case SCF_TERR_PROP_PATTERN_INCOMPLETE:
-		return (dgettext(TEXT_DOMAIN, em_tmpl_fmri));
+		return (em_tmpl_fmri);
 	default:
 		return (NULL);
 	}
@@ -4642,7 +4641,7 @@ _get_tmpl_pg_name_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_INCLUDE_VALUES:
 	case SCF_TERR_PG_PATTERN_INCOMPLETE:
 	case SCF_TERR_PROP_PATTERN_INCOMPLETE:
-		return (dgettext(TEXT_DOMAIN, em_tmpl_pg_name));
+		return (em_tmpl_pg_name);
 	default:
 		return (NULL);
 	}
@@ -4669,7 +4668,7 @@ _get_tmpl_pg_type_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_INCLUDE_VALUES:
 	case SCF_TERR_PROP_PATTERN_INCOMPLETE:
 	case SCF_TERR_PG_PATTERN_INCOMPLETE:
-		return (dgettext(TEXT_DOMAIN, em_tmpl_pg_type));
+		return (em_tmpl_pg_type);
 	default:
 		return (NULL);
 	}
@@ -4690,7 +4689,7 @@ _get_tmpl_prop_name_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_PROP_PATTERN_CONFLICT:
 	case SCF_TERR_INCLUDE_VALUES:
 	case SCF_TERR_PROP_PATTERN_INCOMPLETE:
-		return (dgettext(TEXT_DOMAIN, em_tmpl_prop_name));
+		return (em_tmpl_prop_name);
 	case SCF_TERR_MISSING_PG:
 	case SCF_TERR_WRONG_PG_TYPE:
 	case SCF_TERR_PG_REDEFINE:
@@ -4716,7 +4715,7 @@ _get_tmpl_prop_type_desc(scf_tmpl_error_t *err)
 	case SCF_TERR_INVALID_VALUE:
 	case SCF_TERR_PROP_PATTERN_CONFLICT:
 	case SCF_TERR_INCLUDE_VALUES:
-		return (dgettext(TEXT_DOMAIN, em_tmpl_prop_type));
+		return (em_tmpl_prop_type);
 	case SCF_TERR_MISSING_PG:
 	case SCF_TERR_WRONG_PG_TYPE:
 	case SCF_TERR_PG_REDEFINE:
@@ -5931,15 +5930,13 @@ scf_tmpl_strerror(scf_tmpl_error_t *err,  char *s, size_t n, int flag)
 
 	/* prefix */
 	if (err->te_errs->tes_prefix != NULL) {
-		ret = snprintf(buf, sz, "%s", dgettext(TEXT_DOMAIN,
-		    err->te_errs->tes_prefix));
+		ret = snprintf(buf, sz, "%s", err->te_errs->tes_prefix);
 		nsz += ret;
 		sz = (sz - ret) > 0 ? sz - ret : 0;
 		buf = (sz > 0) ? s + nsz : NULL;
 	}
 	/* error message */
-	ret = snprintf(buf, sz, "%s", dgettext(TEXT_DOMAIN,
-	    em_desc[err->te_type].em_msg));
+	ret = snprintf(buf, sz, "%s", em_desc[err->te_type].em_msg);
 	nsz += ret;
 	sz = (sz - ret) > 0 ? sz - ret : 0;
 	buf = (sz > 0) ? s + nsz : NULL;

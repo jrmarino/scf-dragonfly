@@ -30,9 +30,7 @@
 #include <libscf.h>
 #include <libscf_priv.h>
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /*
  * This macro must be extended if additional FMRI prefixes are defined
@@ -62,8 +60,6 @@ const char *scf_get_msg(scf_msg_t);
 int ismember(const scf_error_t, const scf_error_t[]);
 int32_t state_from_string(const char *, size_t);
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* _LIBSCF_IMPL_H */
