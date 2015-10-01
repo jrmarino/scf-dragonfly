@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <libgen.h>
 #include <assert.h>
@@ -697,6 +698,13 @@ out:
 	return (ret);
 }
 
+static hrtime_t
+gethrtime(void) {
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	return (((hrtime_t) ts.tv_sec * NANOSEC) + ts.tv_nsec);
+}
+
 /*
  * Returns 0 on success or -1 on failure.  On failure leaves scf_error() set to
  *   SCF_ERROR_HANDLE_DESTROYED - inst's handle has been destroyed
@@ -1024,7 +1032,7 @@ set_inst_enabled_atboot(scf_instance_t *inst, uint8_t desired)
 	if ((persistent = get_inst_enabled(inst, SCF_PG_GENERAL)) < 0) {
 		if (scf_error() != SCF_ERROR_NOT_FOUND)
 			goto out;
-		persistent = B_FALSE;
+		persistent = false;
 	}
 	if ((enabled = get_inst_enabled(inst, SCF_PG_GENERAL_OVR)) < 0) {
 		enabled = persistent;
@@ -1149,13 +1157,13 @@ get_instance_pg(scf_simple_handle_t *simple_h)
 int
 smf_enable_instance(const char *fmri, int flags)
 {
-	return (set_inst_enabled_flags(fmri, flags, B_TRUE));
+	return (set_inst_enabled_flags(fmri, flags, true));
 }
 
 int
 smf_disable_instance(const char *fmri, int flags)
 {
-	return (set_inst_enabled_flags(fmri, flags, B_FALSE));
+	return (set_inst_enabled_flags(fmri, flags, false));
 }
 
 int
@@ -1342,7 +1350,7 @@ scf_general_pg_setup(const char *fmri, const char *pg_name)
 	}
 
 	if (scf_handle_decode_fmri(ret->h, fmri, NULL, NULL, ret->inst,
-	    NULL, NULL, NULL) == -1) {
+	    NULL, NULL, 0) == -1) {
 		goto out;
 	}
 
@@ -1514,7 +1522,7 @@ scf_set_count_property(
 	scf_transaction_t	*trans,
 	char			*propname,
 	uint64_t		count,
-	boolean_t		create_flag)
+	bool			create_flag)
 {
 	scf_handle_t		*handle = scf_transaction_handle(trans);
 	scf_value_t		*value = scf_value_create(handle);
@@ -1538,7 +1546,7 @@ scf_set_count_property(
 			return (SCF_SUCCESS);
 		}
 	} else {
-		if ((create_flag == B_TRUE) &&
+		if ((create_flag == true) &&
 		    (scf_error() == SCF_ERROR_NOT_FOUND)) {
 			if (scf_transaction_property_new(trans, entry, propname,
 			    SCF_TYPE_COUNT) == 0) {
@@ -1562,7 +1570,7 @@ scf_set_count_property(
 }
 
 int
-scf_simple_walk_instances(uint_t state_flags, void *private,
+scf_simple_walk_instances(uint32_t state_flags, void *private,
     int (*inst_callback)(scf_handle_t *, scf_instance_t *, void *))
 {
 	scf_scope_t 		*scope = NULL;
@@ -1616,7 +1624,7 @@ scf_simple_walk_instances(uint_t state_flags, void *private,
 				}
 			}
 
-			if ((uint_t)inst_state & state_flags) {
+			if ((uint32_t)inst_state & state_flags) {
 				if (inst_callback(h, inst, private) !=
 				    SCF_SUCCESS) {
 					(void) scf_set_error(
@@ -1656,12 +1664,12 @@ scf_simple_prop_get(scf_handle_t *hin, const char *instance, const char *pgname,
 	scf_service_t 		*svc = NULL;
 	scf_simple_prop_t 	*ret;
 	scf_handle_t		*h = NULL;
-	boolean_t		local_h = B_TRUE;
+	bool			local_h = true;
 
 	/* If the user passed in a handle, use it. */
 	if (hin != NULL) {
 		h = hin;
-		local_h = B_FALSE;
+		local_h = false;
 	}
 
 	if (local_h && ((h = _scf_handle_create_and_bind(SCF_VERSION)) == NULL))
@@ -1797,12 +1805,12 @@ scf_simple_app_props_get(scf_handle_t *hin, const char *inst_fmri)
 	ssize_t			namelen;
 	char 			*propname = NULL, *pgname = NULL, *sys_fmri;
 	uint8_t			found;
-	boolean_t		local_h = B_TRUE;
+	bool			local_h = true;
 
 	/* If the user passed in a handle, use it. */
 	if (hin != NULL) {
 		h = hin;
-		local_h = B_FALSE;
+		local_h = false;
 	}
 
 	if (local_h && ((h = _scf_handle_create_and_bind(SCF_VERSION)) == NULL))
@@ -2462,6 +2470,98 @@ scf_simple_prop_next_opaque(scf_simple_prop_t *prop, size_t *length)
 	return (ret->pv_opaque.o_value);
 }
 
+/* verbatim from Illumos libc (sans comments) */
+static char *
+simplify(const char *str)
+{
+	int i;
+	size_t mbPathlen;	/* length of multi-byte path */
+	size_t wcPathlen;	/* length of wide-character path */
+	wchar_t *wptr;		/* scratch pointer */
+	wchar_t *wcPath;	/* wide-character version of the path */
+	char *mbPath;		/* The copy fo the path to be returned */
+
+	if (!str)
+		return (NULL);
+	if ((mbPath = strdup(str)) == NULL) {
+		return (NULL);
+	}
+	mbPathlen = strlen(mbPath);
+	if ((wcPath = calloc(sizeof (wchar_t), mbPathlen+1)) == NULL) {
+		free(mbPath);
+		return (NULL);
+	}
+	if ((wcPathlen = mbstowcs(wcPath, mbPath, mbPathlen)) == (size_t)-1) {
+		free(mbPath);
+		free(wcPath);
+		return (NULL);
+	}
+	for (wptr = wcPath, i = 0; i < wcPathlen; i++) {
+		*wptr++ = wcPath[i];
+		if (wcPath[i] == '/') {
+			i++;
+			while (wcPath[i] == '/') {
+				i++;
+			}
+			i--;
+		}
+	}
+	*wptr = '\0';
+	if (wcstombs(mbPath, wcPath, mbPathlen) == (size_t)-1) {
+		free(mbPath);
+		free(wcPath);
+		return (NULL);
+	}
+	free(wcPath);
+	return (mbPath);
+}
+
+/* verbatim from Illumos libc (sans comments) */
+static int
+mkdirp(const char *d, mode_t mode)
+{
+	char  *endptr, *ptr, *slash, *str;
+
+	str = simplify(d);
+	if (str == NULL)
+		return (-1);
+	if (mkdir(str, mode) == 0) {
+		free(str);
+		return (0);
+	}
+	if (errno != ENOENT) {
+		free(str);
+		return (-1);
+	}
+	endptr = strrchr(str, '\0');
+	slash = strrchr(str, '/');
+	while (slash != NULL) {
+		ptr = slash;
+		*ptr = '\0';
+		if (access(str, F_OK) == 0)
+			break;
+		else {
+			slash = strrchr(str, '/');
+			if (slash == NULL || slash == str) {
+				if (mkdir(str, mode) != 0 && errno != EEXIST) {
+					free(str);
+					return (-1);
+				}
+				break;
+			}
+		}
+	}
+	while ((ptr = strchr(str, '\0')) != endptr) {
+		*ptr = '/';
+		if (mkdir(str, mode) != 0 && errno != EEXIST) {
+			free(str);
+			return (-1);
+		}
+	}
+	free(str);
+	return (0);
+}
+
 /*
  * Generate a filename based on the fmri and the given name and return
  * it in the buffer of MAXPATHLEN provided by the caller.
@@ -2587,7 +2687,7 @@ count_props(scf_propvec_t *props)
  * On all failures, all memory allocated by this function is freed.
  */
 int
-scf_read_propvec(const char *fmri, const char *pgname, boolean_t running,
+scf_read_propvec(const char *fmri, const char *pgname, bool running,
     scf_propvec_t *properties, scf_propvec_t **badprop)
 {
 	scf_handle_t *h = _scf_handle_create_and_bind(SCF_VERSION);
@@ -2597,7 +2697,7 @@ scf_read_propvec(const char *fmri, const char *pgname, boolean_t running,
 	scf_propertygroup_t *pg = scf_pg_create(h);
 	scf_property_t *p = scf_property_create(h);
 	scf_value_t *v = scf_value_create(h);
-	boolean_t instance = B_TRUE;
+	bool instance = true;
 	scf_propvec_t *prop;
 	int error = 0;
 
@@ -2611,7 +2711,7 @@ scf_read_propvec(const char *fmri, const char *pgname, boolean_t running,
 	if (scf_instance_to_fmri(i, NULL, 0) == -1) {
 		if (scf_error() != SCF_ERROR_NOT_SET)
 			goto scferror;
-		instance = B_FALSE;
+		instance = false;
 	}
 
 	if (running) {
@@ -2656,8 +2756,8 @@ scf_read_propvec(const char *fmri, const char *pgname, boolean_t running,
 				*bits = b ? (*bits | prop->pv_aux) :
 				    (*bits & ~prop->pv_aux);
 			} else {
-				boolean_t *bool = prop->pv_ptr;
-				*bool = b ? B_TRUE : B_FALSE;
+				bool *boolzzz = prop->pv_ptr;
+				*boolzzz = b ? true : false;
 			}
 			break;
 		}
@@ -2765,7 +2865,7 @@ scf_write_propvec(const char *fmri, const char *pgname,
 	scf_transaction_t *tx = scf_transaction_create(h);
 	scf_value_t **v = NULL;
 	scf_transaction_entry_t **e = NULL;
-	boolean_t instance = B_TRUE;
+	bool instance = true;
 	int i, n;
 	scf_propvec_t *prop;
 	int error = 0, ret;
@@ -2797,7 +2897,7 @@ scf_write_propvec(const char *fmri, const char *pgname,
 	if (scf_instance_to_fmri(inst, NULL, 0) == -1) {
 		if (scf_error() != SCF_ERROR_NOT_SET)
 			goto scferror;
-		instance = B_FALSE;
+		instance = false;
 	}
 
 	if ((instance ? scf_instance_get_pg(inst, pgname, pg) :
@@ -2822,9 +2922,9 @@ top:
 
 		switch (prop->pv_type) {
 		case SCF_TYPE_BOOLEAN: {
-			boolean_t b = (prop->pv_aux != 0) ?
+			bool b = (prop->pv_aux != 0) ?
 			    (*(uint64_t *)prop->pv_ptr & prop->pv_aux) != 0 :
-			    *(boolean_t *)prop->pv_ptr;
+			    *(bool *)prop->pv_ptr;
 
 			scf_value_set_boolean(v[i], b ? 1 : 0);
 			break;

@@ -29,9 +29,7 @@
 
 #include "libscf_impl.h"
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 union scf_simple_prop_val {
 	uint8_t		pv_bool;
@@ -70,8 +68,6 @@ struct scf_simple_app_props {
 	struct scf_simple_pg	*ap_pglist;
 };
 
-#ifdef	__cplusplus
-}
-#endif
+__END_DECLS
 
 #endif	/* _MIDLEVEL_IMPL_H */
